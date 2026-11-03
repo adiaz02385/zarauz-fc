@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\MonthlyFee;
-use App\Models\Payment;
 use App\Models\Player;
 use Illuminate\Http\Request;
 
@@ -26,14 +25,21 @@ class PublicTreasuryController
             fn (Player $player) => $player->payments->sum('amount') >= $amount
         )->count();
 
-        $received = Payment::where('period', $period)->sum('amount');
+        $received = $players->sum(
+            fn (Player $player) => $player->payments->sum('amount')
+        );
+
+        $pending = $players->sum(
+            fn (Player $player) => max(0, $amount - $player->payments->sum('amount'))
+        );
 
         return view('public.treasury', compact(
             'period',
             'amount',
             'players',
             'paid',
-            'received'
+            'received',
+            'pending',
         ));
     }
 
