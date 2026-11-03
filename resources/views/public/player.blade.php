@@ -7,19 +7,26 @@
     <style>
         body { font-family: system-ui, sans-serif; background: #f3f5f8; color: #172033; margin: 0; padding: 22px; }
         .box { max-width: 680px; margin: auto; background: white; padding: 24px; border-radius: 18px; }
+        .brand { display: flex; align-items: center; gap: 14px; }
+        .brand img { width: 76px; height: 76px; object-fit: contain; }
         .muted { color: #64748b; }
         .item { padding: 13px 0; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; gap: 12px; }
     </style>
 </head>
 <body>
 <main class="box">
-    <h1>ZARAÚZ FC</h1>
-    <p class="muted">Estado personal de mensualidades</p>
+    <header class="brand">
+        <img src="{{ asset('images/zarauz-fc.webp') }}" alt="Escudo Zaraúz FC">
+        <div>
+            <h1>ZARAÚZ FC</h1>
+            <p class="muted">Estado personal de mensualidades</p>
+        </div>
+    </header>
     <h2>{{ $player->nickname ?: $player->name }}</h2>
 
     @forelse ($payments as $payment)
         <div class="item">
-            <span>{{ $payment->period }} · {{ $payment->paid_at->format('d/m/Y') }}</span>
+            <span>{{ $payment->period }} · {{ $payment->paid_at?->format('d/m/Y') ?? 'Fecha no informada' }}</span>
             <strong>${{ number_format($payment->amount, 0, ',', '.') }}</strong>
         </div>
     @empty
