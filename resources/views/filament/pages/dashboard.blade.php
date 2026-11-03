@@ -38,7 +38,7 @@
                 <p class="mt-3 text-3xl font-extrabold tracking-tight text-success-700 dark:text-success-400">
                     $ {{ number_format($statement['totalIncome'], 0, ',', '.') }}
                 </p>
-                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Mensualidades y cuotas de eventos</p>
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Mensualidades e ingresos especiales</p>
             </section>
 
             <section class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
@@ -85,11 +85,11 @@
 
                 <div class="flex items-center justify-between gap-4 px-5 py-4 sm:px-6">
                     <div>
-                        <dt class="text-sm font-medium text-gray-900 dark:text-white">Cuotas de eventos especiales</dt>
-                        <dd class="mt-1 text-xs text-gray-500 dark:text-gray-400">Pagos recibidos durante el mes seleccionado</dd>
+                        <dt class="text-sm font-medium text-gray-900 dark:text-white">Ingresos especiales</dt>
+                        <dd class="mt-1 text-xs text-gray-500 dark:text-gray-400">Aportes, donaciones y otros ingresos extraordinarios del mes</dd>
                     </div>
                     <dd class="shrink-0 text-sm font-semibold tabular-nums text-success-700 dark:text-success-400">
-                        + $ {{ number_format($statement['eventIncome'], 0, ',', '.') }}
+                        + $ {{ number_format($statement['specialIncome'], 0, ',', '.') }}
                     </dd>
                 </div>
 
@@ -113,7 +113,7 @@
         </section>
 
         <p class="text-xs leading-5 text-gray-500 dark:text-gray-400">
-            Criterio de cálculo: las mensualidades se imputan al período al que corresponden; las cuotas de eventos y los gastos se consideran según su fecha efectiva de pago o registro.
+            Criterio de cálculo: las mensualidades se imputan al período al que corresponden; los ingresos especiales y los gastos se consideran según su fecha de ingreso o registro.
             El saldo mostrado corresponde al movimiento neto del mes, no al saldo histórico acumulado de caja.
         </p>
     </div>
