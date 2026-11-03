@@ -23,6 +23,12 @@
         .bar span { display: block; height: 100%; background: #16a34a; }
         input, button, .share { padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 9px; background: white; color: #172033; text-decoration: none; display: inline-block; }
         button { cursor: pointer; }
+        .period-filter { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; }
+        .period-field { display: flex; flex-direction: column; gap: 6px; }
+        .period-field label { color: #334155; font-size: 13px; font-weight: 700; }
+        .period-field input { min-width: 190px; }
+        .period-filter button { min-height: 39px; border-color: #0f766e; background: #0f766e; color: #fff; font-weight: 650; }
+        .period-help { margin: 10px 0 0; font-size: 12px; color: #64748b; }
         .share { margin-top: 16px; border-color: #15803d; color: #166534; font-weight: 650; }
         .account-panel { margin-top: 18px; }
         .account-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
@@ -88,11 +94,18 @@
     </section>
 
     <section class="panel">
-        <form method="get">
-            <label for="period"><strong>Mes consultado</strong></label>
-            <input id="period" name="period" type="month" value="{{ $period }}">
-            <button type="submit">Consultar</button>
+        <form method="get" class="period-filter">
+            <div class="period-field">
+                <label for="start_period">Desde el mes</label>
+                <input id="start_period" name="start_period" type="month" value="{{ $startPeriod }}" max="{{ $endPeriod }}" required>
+            </div>
+            <div class="period-field">
+                <label for="end_period">Hasta el mes</label>
+                <input id="end_period" name="end_period" type="month" value="{{ $endPeriod }}" min="{{ $startPeriod }}" required>
+            </div>
+            <button type="submit">Consultar período</button>
         </form>
+        <p class="period-help">Selecciona el mismo mes en ambos campos para consultar un mes, o un rango para consultar varios meses consecutivos.</p>
 
         <div class="bar">
             <span style="width: {{ $players->count() ? min(100, round($paid / $players->count() * 100)) : 0 }}%"></span>
@@ -100,10 +113,10 @@
 
         <p class="muted">
             {{ $players->count() ? round($paid / $players->count() * 100) : 0 }}% de jugadores con cuota completa
-            · Cuota mensual: \${{ number_format($amount, 0, ',', '.') }}
+            · Cuota total por jugador en el período: ${{ number_format($amount, 0, ',', '.') }}
         </p>
         <a class="share" href="https://wa.me/?text={{ rawurlencode('Estado de tesorería Zaraúz FC: ' . url()->full()) }}" target="_blank" rel="noopener">
-            Compartir este mes por WhatsApp
+            Compartir este período por WhatsApp
         </a>
     </section>
 
@@ -111,7 +124,7 @@
         <div class="account-heading">
             <h2>Estado de cuenta actual</h2>
             <span class="account-period">
-                {{ \Illuminate\Support\Carbon::createFromFormat('!Y-m', $period)->locale('es')->translatedFormat('F Y') }}
+                {{ $periodLabel }}
             </span>
         </div>
 
@@ -133,13 +146,13 @@
         <p class="account-breakdown">
             Ingresos por mensualidades: $ {{ number_format($monthlyIncome, 0, ',', '.') }}
             · Ingresos especiales: $ {{ number_format($specialIncome, 0, ',', '.') }}.
-            El saldo corresponde a ingresos menos gastos del mes consultado.
+            El saldo corresponde a ingresos menos gastos del período consultado.
         </p>
     </section>
 
     <section class="panel roster-panel">
         <div class="roster-header">
-            <h2>Estado de jugadores — {{ $period }}</h2>
+            <h2>Estado de jugadores — {{ $periodLabel }}</h2>
             <span class="muted">{{ $players->count() }} jugadores activos</span>
         </div>
 
@@ -190,7 +203,7 @@
             <span class="status status-partial">Abono parcial</span>
             <span class="status status-pending">Pendiente</span>
         </div>
-        <p class="muted">El estado corresponde al mes seleccionado y considera la suma de los pagos y abonos registrados. Este listado es visible públicamente.</p>
+        <p class="muted">El estado corresponde al período seleccionado y considera la suma de los pagos y abonos registrados. La cuota exigible suma los valores mensuales de cada mes del rango. Este listado es visible públicamente.</p>
     </section>
 </main>
 </body>
