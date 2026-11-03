@@ -18,6 +18,8 @@ use UnitEnum;
 
 class PlayerResource extends Resource
 {
+    private const PUBLIC_PLAYER_BASE_URL = 'https://zarauzfc.up.railway.app';
+
     protected static ?string $model = Player::class;
 
     protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-users';
@@ -31,6 +33,11 @@ class PlayerResource extends Resource
     protected static ?string $pluralModelLabel = 'jugadores';
 
     protected static ?string $recordTitleAttribute = 'name';
+
+    private static function publicPlayerUrl(Player $player): string
+    {
+        return rtrim(self::PUBLIC_PLAYER_BASE_URL, '/') . '/jugador/' . $player->public_token;
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -80,13 +87,12 @@ class PlayerResource extends Resource
                     ->color(fn ($state): string => $state ? 'success' : 'gray'),
                 TextColumn::make('public_token')
                     ->label('Enlace de consulta')
-                    // The full URL is the actual column state, so copyable() copies
-                    // the complete link even when limit() shortens its visual display.
-                    ->state(fn (Player $record): string => url('/jugador/' . $record->public_token))
+                    ->state(fn (Player $record): string => self::publicPlayerUrl($record))
                     ->copyable()
                     ->copyMessage('Enlace completo copiado')
-                    ->limit(48)
-                    ->tooltip(fn ($state): string => (string) $state),
+                    ->wrap()
+                    ->url(fn (Player $record): string => self::publicPlayerUrl($record))
+                    ->openUrlInNewTab(),
             ])
             ->recordActions([
                 EditAction::make(),
