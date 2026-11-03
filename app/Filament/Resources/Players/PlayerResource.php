@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Filament\Resources\Players;
+namespace App\\Filament\\Resources\\Players;
 
-use App\Filament\Resources\Players\Pages\CreatePlayer;
-use App\Filament\Resources\Players\Pages\EditPlayer;
-use App\Filament\Resources\Players\Pages\ListPlayers;
-use App\Models\Player;
+use App\\Filament\\Resources\\Players\\Pages\\CreatePlayer;
+use App\\Filament\\Resources\\Players\\Pages\\EditPlayer;
+use App\\Filament\\Resources\\Players\\Pages\\ListPlayers;
+use App\\Models\\Player;
 use BackedEnum;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
-use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
+use Filament\\Forms\\Components\\TextInput;
+use Filament\\Forms\\Components\\Toggle;
+use Filament\\Resources\\Resource;
+use Filament\\Schemas\\Schema;
+use Filament\\Tables\\Columns\\TextColumn;
+use Filament\\Tables\\Table;
 use UnitEnum;
 
 class PlayerResource extends Resource
@@ -38,6 +38,11 @@ class PlayerResource extends Resource
                 ->label('Nombre completo')
                 ->required()
                 ->maxLength(255),
+            TextInput::make('identification')
+                ->label('Identificación / RUT')
+                ->maxLength(30)
+                ->placeholder('Ej.: 12.345.678-9')
+                ->helperText('Identificación del jugador. Campo opcional.'),
             TextInput::make('nickname')
                 ->label('Apodo')
                 ->maxLength(255),
@@ -59,6 +64,9 @@ class PlayerResource extends Resource
                     ->label('Nombre')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('identification')
+                    ->label('Identificación / RUT')
+                    ->searchable(),
                 TextColumn::make('nickname')
                     ->label('Apodo')
                     ->searchable(),
@@ -76,7 +84,7 @@ class PlayerResource extends Resource
                     ->limit(36),
             ])
             ->recordActions([
-                \Filament\Actions\EditAction::make(),
+                \\Filament\\Actions\\EditAction::make(),
             ])
             ->defaultSort('name');
     }

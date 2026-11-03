@@ -1,15 +1,22 @@
 <?php
 
-namespace App\Models;
+namespace App\\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\\Database\\Eloquent\\Model;
+use Illuminate\\Database\\Eloquent\\Relations\\BelongsTo;
 
 class Payment extends Model
 {
     protected $fillable = [
-        'player_id', 'period', 'amount', 'paid_at',
-        'method', 'reference', 'notes', 'registered_by',
+        'player_id',
+        'period',
+        'amount',
+        'paid_at',
+        'method',
+        'reference',
+        'notes',
+        'attachment_path',
+        'registered_by',
     ];
 
     protected $casts = [

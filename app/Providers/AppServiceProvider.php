@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Providers;
+namespace App\\Providers;
 
-use Illuminate\Support\Facades\URL;
-use Illuminate\Support\ServiceProvider;
+use Illuminate\\Support\\Facades\\App;
+use Illuminate\\Support\\Facades\\URL;
+use Illuminate\\Support\\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -14,7 +15,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Force HTTPS-generated links on Railway in production as a safeguard.
+        App::setLocale('es');
+
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
         }
