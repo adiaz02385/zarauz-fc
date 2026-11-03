@@ -12,7 +12,8 @@ return new class extends Migration {
             $table->foreignId('player_id')->constrained()->cascadeOnDelete();
             $table->char('period', 7);
             $table->unsignedInteger('amount');
-            $table->date('paid_at');
+            // Null is allowed for opening balances imported without an exact payment date.
+            $table->date('paid_at')->nullable();
             $table->string('method')->nullable();
             $table->string('reference')->nullable();
             $table->text('notes')->nullable();
