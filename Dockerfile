@@ -11,6 +11,7 @@ RUN composer create-project laravel/laravel:^12.0 . --no-interaction --prefer-di
 
 COPY composer.json ./composer.json
 COPY app ./app
+COPY bootstrap/app.php ./bootstrap/app.php
 COPY bootstrap/providers.php ./bootstrap/providers.php
 COPY config/zarauz.php ./config/zarauz.php
 COPY database/migrations ./database/migrations
