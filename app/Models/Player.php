@@ -36,6 +36,11 @@ class Player extends Model
         return $this->hasMany(PaymentSubmission::class);
     }
 
+    public function specialEventPayments(): HasMany
+    {
+        return $this->hasMany(SpecialEventPayment::class);
+    }
+
     public function paymentsFor(string $period): HasMany
     {
         return $this->payments()->where('period', $period);
