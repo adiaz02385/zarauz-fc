@@ -1,10 +1,17 @@
-# Construye una instalación Laravel 12 limpia e integra el código del repositorio.
-FROM composer:2 AS build
+# Etapa de build: Laravel 12 + Filament 5
+FROM serversideup/php:8.4-cli AS build
+
+USER root
+
+# Filament requiere intl; PostgreSQL requiere pdo_pgsql.
+RUN install-php-extensions intl pdo_pgsql
 
 WORKDIR /app
 
+# Genera la estructura estándar de Laravel 12.
 RUN composer create-project laravel/laravel:^12.0 . --no-interaction --prefer-dist
 
+# Integra el código de Zaraúz FC sobre la instalación Laravel.
 COPY composer.json ./composer.json
 COPY app ./app
 COPY bootstrap/providers.php ./bootstrap/providers.php
@@ -14,16 +21,20 @@ COPY database/seeders ./database/seeders
 COPY resources/views/public ./resources/views/public
 COPY routes/web.php ./routes/web.php
 
-# El composer.lock del esqueleto Laravel no corresponde al composer.json de esta app.
+# Resuelve las dependencias de producción sobre PHP 8.4.
 RUN rm -f composer.lock \
     && composer update --no-dev --prefer-dist --optimize-autoloader --no-interaction \
-    && composer dump-autoload --no-dev --optimize
-
-RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
+    && composer dump-autoload --no-dev --optimize \
+    && mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# NGINX + PHP-FPM; Railway termina HTTPS en su edge y enruta al puerto 8080.
+# Imagen de ejecución: NGINX + PHP-FPM.
 FROM serversideup/php:8.4-fpm-nginx
+
+USER root
+
+# Mantener en runtime las extensiones necesarias por Filament y PostgreSQL.
+RUN install-php-extensions intl pdo_pgsql
 
 WORKDIR /var/www/html
 
@@ -32,3 +43,7 @@ ENV PHP_OPCACHE_ENABLE=1
 ENV HEALTHCHECK_PATH=/up
 
 COPY --from=build --chown=www-data:www-data /app /var/www/html
+
+RUN chown -R www-data:www-data storage bootstrap/cache
+
+USER www-data
