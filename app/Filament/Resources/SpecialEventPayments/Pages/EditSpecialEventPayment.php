@@ -14,8 +14,19 @@ class EditSpecialEventPayment extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
+        $event = SpecialEvent::query()->findOrFail($data['special_event_id']);
+
+        if (
+            $event->status !== SpecialEvent::STATUS_ACTIVE
+            && $event->id !== $this->record->special_event_id
+        ) {
+            throw ValidationException::withMessages([
+                'data.special_event_id' => 'No puedes cambiar un pago a un evento finalizado.',
+            ]);
+        }
+
         $alreadyRegistered = SpecialEventPayment::query()
-            ->where('special_event_id', $data['special_event_id'])
+            ->where('special_event_id', $event->id)
             ->where('player_id', $data['player_id'])
             ->where('id', '!=', $this->record->getKey())
             ->exists();
@@ -26,7 +37,6 @@ class EditSpecialEventPayment extends EditRecord
             ]);
         }
 
-        $event = SpecialEvent::query()->findOrFail($data['special_event_id']);
         $data['amount'] = $event->fee_amount;
 
         return $data;

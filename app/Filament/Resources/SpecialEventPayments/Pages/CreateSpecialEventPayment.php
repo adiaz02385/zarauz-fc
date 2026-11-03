@@ -14,8 +14,16 @@ class CreateSpecialEventPayment extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
+        $event = SpecialEvent::query()->findOrFail($data['special_event_id']);
+
+        if ($event->status !== SpecialEvent::STATUS_ACTIVE) {
+            throw ValidationException::withMessages([
+                'data.special_event_id' => 'No se pueden registrar pagos en un evento finalizado.',
+            ]);
+        }
+
         $alreadyRegistered = SpecialEventPayment::query()
-            ->where('special_event_id', $data['special_event_id'])
+            ->where('special_event_id', $event->id)
             ->where('player_id', $data['player_id'])
             ->exists();
 
@@ -25,7 +33,6 @@ class CreateSpecialEventPayment extends CreateRecord
             ]);
         }
 
-        $event = SpecialEvent::query()->findOrFail($data['special_event_id']);
         $data['amount'] = $event->fee_amount;
         $data['registered_by'] = auth()->id();
 
