@@ -80,9 +80,13 @@ class PlayerResource extends Resource
                     ->color(fn ($state): string => $state ? 'success' : 'gray'),
                 TextColumn::make('public_token')
                     ->label('Enlace de consulta')
-                    ->formatStateUsing(fn (string $state): string => url('/jugador/' . $state))
+                    // The full URL is the actual column state, so copyable() copies
+                    // the complete link even when limit() shortens its visual display.
+                    ->state(fn (Player $record): string => url('/jugador/' . $record->public_token))
                     ->copyable()
-                    ->limit(36),
+                    ->copyMessage('Enlace completo copiado')
+                    ->limit(48)
+                    ->tooltip(fn ($state): string => (string) $state),
             ])
             ->recordActions([
                 EditAction::make(),
