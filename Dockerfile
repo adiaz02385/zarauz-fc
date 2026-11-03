@@ -16,6 +16,7 @@ COPY database/migrations ./database/migrations
 COPY database/seeders ./database/seeders
 COPY lang ./lang
 COPY resources/views/public ./resources/views/public
+COPY resources/views/filament ./resources/views/filament
 COPY routes/web.php ./routes/web.php
 COPY public/images ./public/images
 COPY docker/entrypoint.d/ /etc/entrypoint.d/
