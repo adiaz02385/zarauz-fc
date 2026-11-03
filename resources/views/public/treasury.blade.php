@@ -24,6 +24,19 @@
         input, button, .share { padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 9px; background: white; color: #172033; text-decoration: none; display: inline-block; }
         button { cursor: pointer; }
         .share { margin-top: 16px; border-color: #15803d; color: #166534; font-weight: 650; }
+        .account-panel { margin-top: 18px; }
+        .account-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .account-heading h2 { margin: 0; color: #123f32; font-size: 20px; }
+        .account-period { font-size: 13px; color: #64748b; text-transform: capitalize; }
+        .account-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+        .account-item { border: 1px solid #e5eaf0; border-radius: 12px; padding: 16px; background: #f8fafc; }
+        .account-item .label { color: #64748b; font-size: 13px; }
+        .account-item .amount { margin-top: 7px; font-size: 23px; line-height: 1.2; font-weight: 800; font-variant-numeric: tabular-nums; }
+        .account-item.income .amount { color: #15803d; }
+        .account-item.expense .amount { color: #c2410c; }
+        .account-item.balance .amount { color: #15803d; }
+        .account-item.balance.negative .amount { color: #c2410c; }
+        .account-breakdown { margin: 14px 0 0; color: #64748b; font-size: 13px; line-height: 1.6; }
         .roster-panel { margin-top: 18px; }
         .roster-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
         .roster-header h2 { margin: 0; color: #123f32; font-size: 20px; }
@@ -42,6 +55,7 @@
         @media (max-width: 650px) {
             .wrap { padding: 14px; }
             .cards { grid-template-columns: 1fr; }
+            .account-grid { grid-template-columns: 1fr; }
             .value { font-size: 23px; }
             .hero { padding: 16px; }
             .hero img { width: 76px; height: 76px; }
@@ -91,6 +105,36 @@
         <a class="share" href="https://wa.me/?text={{ rawurlencode('Estado de tesorería Zaraúz FC: ' . url()->full()) }}" target="_blank" rel="noopener">
             Compartir este mes por WhatsApp
         </a>
+    </section>
+
+    <section class="panel account-panel">
+        <div class="account-heading">
+            <h2>Estado de cuenta actual</h2>
+            <span class="account-period">
+                {{ \Illuminate\Support\Carbon::createFromFormat('!Y-m', $period)->locale('es')->translatedFormat('F Y') }}
+            </span>
+        </div>
+
+        <div class="account-grid">
+            <div class="account-item income">
+                <div class="label">Ingresos del período</div>
+                <div class="amount">$ {{ number_format($totalIncome, 0, ',', '.') }}</div>
+            </div>
+            <div class="account-item expense">
+                <div class="label">Gastos del período</div>
+                <div class="amount">$ {{ number_format($expensesTotal, 0, ',', '.') }}</div>
+            </div>
+            <div class="account-item balance {{ $netBalance < 0 ? 'negative' : '' }}">
+                <div class="label">Saldo del período</div>
+                <div class="amount">$ {{ number_format($netBalance, 0, ',', '.') }}</div>
+            </div>
+        </div>
+
+        <p class="account-breakdown">
+            Ingresos por mensualidades: $ {{ number_format($monthlyIncome, 0, ',', '.') }}
+            · Cuotas de eventos: $ {{ number_format($eventIncome, 0, ',', '.') }}.
+            El saldo corresponde a ingresos menos gastos del mes consultado.
+        </p>
     </section>
 
     <section class="panel roster-panel">
