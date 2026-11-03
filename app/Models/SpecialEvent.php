@@ -7,11 +7,20 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SpecialEvent extends Model
 {
+    public const STATUS_ACTIVE = 'active';
+
+    public const STATUS_FINISHED = 'finished';
+
     protected $fillable = [
         'name',
         'event_date',
         'fee_amount',
         'description',
+        'status',
+    ];
+
+    protected $attributes = [
+        'status' => self::STATUS_ACTIVE,
     ];
 
     protected $casts = [
