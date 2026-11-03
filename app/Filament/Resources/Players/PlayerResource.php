@@ -1,0 +1,87 @@
+<?php
+
+namespace App\Filament\Resources\Players;
+
+use App\Filament\Resources\Players\Pages\CreatePlayer;
+use App\Filament\Resources\Players\Pages\EditPlayer;
+use App\Filament\Resources\Players\Pages\ListPlayers;
+use App\Models\Player;
+use BackedEnum;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use UnitEnum;
+
+class PlayerResource extends Resource
+{
+    protected static ?string $model = Player::class;
+
+    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-users';
+
+    protected static string | UnitEnum | null $navigationGroup = 'Tesorería';
+
+    protected static ?string $navigationLabel = 'Jugadores';
+
+    protected static ?string $modelLabel = 'jugador';
+
+    protected static ?string $pluralModelLabel = 'jugadores';
+
+    protected static ?string $recordTitleAttribute = 'name';
+
+    public static function form(Schema $schema): Schema
+    {
+        return $schema->components([
+            TextInput::make('name')
+                ->label('Nombre completo')
+                ->required()
+                ->maxLength(255),
+            TextInput::make('nickname')
+                ->label('Apodo')
+                ->maxLength(255),
+            TextInput::make('phone')
+                ->label('Teléfono')
+                ->tel()
+                ->maxLength(30),
+            Toggle::make('active')
+                ->label('Jugador activo')
+                ->default(true),
+        ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('name')
+                    ->label('Nombre')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('nickname')
+                    ->label('Apodo')
+                    ->searchable(),
+                TextColumn::make('phone')
+                    ->label('Teléfono'),
+                TextColumn::make('active')
+                    ->label('Estado')
+                    ->badge()
+                    ->formatStateUsing(fn ($state): string => $state ? 'Activo' : 'Inactivo')
+                    ->color(fn ($state): string => $state ? 'success' : 'gray'),
+            ])
+            ->recordActions([
+                \Filament\Actions\EditAction::make(),
+            ])
+            ->defaultSort('name');
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => ListPlayers::route('/'),
+            'create' => CreatePlayer::route('/create'),
+            'edit' => EditPlayer::route('/{record}/edit'),
+        ];
+    }
+}
