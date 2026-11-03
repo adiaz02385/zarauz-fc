@@ -6,6 +6,7 @@ use App\Models\MonthlyFee;
 use App\Models\Payment;
 use App\Models\PaymentSubmission;
 use App\Models\Player;
+use App\Services\TreasuryStatement;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -44,13 +45,18 @@ class PublicTreasuryController
             fn (Player $player) => max(0, $amount - $player->payments->sum('amount'))
         );
 
-        return view('public.treasury', compact(
-            'period',
-            'amount',
-            'players',
-            'paid',
-            'received',
-            'pending',
+        $statement = app(TreasuryStatement::class)->forPeriod($period);
+
+        return view('public.treasury', array_merge(
+            compact(
+                'period',
+                'amount',
+                'players',
+                'paid',
+                'received',
+                'pending',
+            ),
+            $statement,
         ));
     }
 
