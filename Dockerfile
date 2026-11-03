@@ -3,15 +3,12 @@ FROM serversideup/php:8.4-cli AS build
 
 USER root
 
-# Filament requiere intl; PostgreSQL requiere pdo_pgsql.
 RUN install-php-extensions intl pdo_pgsql
 
 WORKDIR /app
 
-# Genera la estructura estándar de Laravel 12.
 RUN composer create-project laravel/laravel:^12.0 . --no-interaction --prefer-dist
 
-# Integra el código de Zaraúz FC sobre la instalación Laravel.
 COPY composer.json ./composer.json
 COPY app ./app
 COPY bootstrap/providers.php ./bootstrap/providers.php
@@ -20,20 +17,18 @@ COPY database/migrations ./database/migrations
 COPY database/seeders ./database/seeders
 COPY resources/views/public ./resources/views/public
 COPY routes/web.php ./routes/web.php
+COPY public/images ./public/images
 
-# Resuelve las dependencias de producción sobre PHP 8.4.
 RUN rm -f composer.lock \
     && composer update --no-dev --prefer-dist --optimize-autoloader --no-interaction \
     && composer dump-autoload --no-dev --optimize \
     && mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# Imagen de ejecución: NGINX + PHP-FPM.
 FROM serversideup/php:8.4-fpm-nginx
 
 USER root
 
-# Mantener en runtime las extensiones necesarias por Filament y PostgreSQL.
 RUN install-php-extensions intl pdo_pgsql
 
 WORKDIR /var/www/html
