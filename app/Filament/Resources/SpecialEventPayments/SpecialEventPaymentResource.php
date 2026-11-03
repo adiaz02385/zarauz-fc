@@ -22,6 +22,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\Rules\Unique;
 use UnitEnum;
 
@@ -44,10 +45,32 @@ class SpecialEventPaymentResource extends Resource
         return $schema->components([
             Select::make('special_event_id')
                 ->label('Evento')
-                ->relationship('specialEvent', 'name')
-                ->getOptionLabelFromRecordUsing(fn (SpecialEvent $record): string => $record->name
-                    . ' · ' . $record->event_date->format('d/m/Y')
-                    . ' · $' . number_format($record->fee_amount, 0, ',', '.'))
+                ->options(function (?SpecialEventPayment $record): array {
+                    return SpecialEvent::query()
+                        ->where(function (Builder $query) use ($record): void {
+                            $query->where('status', SpecialEvent::STATUS_ACTIVE);
+
+                            // Keep the current event available when editing a payment
+                            // that was registered before the event was finalized.
+                            if ($record) {
+                                $query->orWhereKey($record->special_event_id);
+                            }
+                        })
+                        ->orderByDesc('event_date')
+                        ->orderByDesc('id')
+                        ->get()
+                        ->mapWithKeys(fn (SpecialEvent $event): array => [
+                            $event->id => $event->name
+                                . ' · ' . $event->event_date->format('d/m/Y')
+                                . ' · $' . number_format($event->fee_amount, 0, ',', '.'),
+                        ])
+                        ->all();
+                })
+                ->default(fn (): ?int => SpecialEvent::query()
+                    ->where('status', SpecialEvent::STATUS_ACTIVE)
+                    ->orderByDesc('event_date')
+                    ->orderByDesc('id')
+                    ->value('id'))
                 ->searchable()
                 ->preload()
                 ->live()
