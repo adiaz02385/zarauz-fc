@@ -3,7 +3,8 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-preDeployCommand = ["php artisan migrate --force", "php artisan db:seed --force"]
+preDeployCommand = ["sh -lc 'php artisan migrate --force && php artisan db:seed --force'"]
+preDeployTimeout = 600
 healthcheckPath = "/up"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
