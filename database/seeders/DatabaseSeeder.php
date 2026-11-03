@@ -7,6 +7,7 @@ use App\Models\Payment;
 use App\Models\Player;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
@@ -27,14 +28,21 @@ class DatabaseSeeder extends Seeder
                 ->when($admin->exists, fn ($query) => $query->where('id', '!=', $admin->id))
                 ->update(['is_admin' => false]);
 
-            $admin->forceFill([
+            $adminData = [
                 'name' => $adminName !== '' ? $adminName : 'Tesorero Zaraúz FC',
                 'email' => $email,
-                'password' => $password,
                 'email_verified_at' => now(),
                 'is_admin' => true,
                 'is_active' => true,
-            ])->save();
+            ];
+
+            // Do not rotate the password hash on every deployment:
+            // AuthenticateSession treats that as a password change and logs out the treasurer.
+            if (! $admin->exists || ! Hash::check($password, (string) $admin->getAuthPassword())) {
+                $adminData['password'] = $password;
+            }
+
+            $admin->forceFill($adminData)->save();
 
             logger()->info('Zarauz FC administrator account synchronized.', [
                 'user_id' => $admin->id,
