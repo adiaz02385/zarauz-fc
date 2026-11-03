@@ -80,7 +80,7 @@
 
     <section class="cards">
         <div class="card">
-            <div class="muted">Recaudado en el período</div>
+            <div class="muted">Recaudado por mensualidades en el período</div>
             <div class="value green">\${{ number_format($received, 0, ',', '.') }}</div>
         </div>
         <div class="card">
@@ -88,36 +88,9 @@
             <div class="value">{{ $paid }} / {{ $players->count() }}</div>
         </div>
         <div class="card">
-            <div class="muted">Saldo pendiente total</div>
+            <div class="muted">Total mensualidades pendientes</div>
             <div class="value orange">\${{ number_format($pending, 0, ',', '.') }}</div>
         </div>
-    </section>
-
-    <section class="panel">
-        <form method="get" class="period-filter">
-            <div class="period-field">
-                <label for="start_period">Desde el mes</label>
-                <input id="start_period" name="start_period" type="month" value="{{ $startPeriod }}" max="{{ $endPeriod }}" required>
-            </div>
-            <div class="period-field">
-                <label for="end_period">Hasta el mes</label>
-                <input id="end_period" name="end_period" type="month" value="{{ $endPeriod }}" min="{{ $startPeriod }}" required>
-            </div>
-            <button type="submit">Consultar período</button>
-        </form>
-        <p class="period-help">Selecciona el mismo mes en ambos campos para consultar un mes, o un rango para consultar varios meses consecutivos.</p>
-
-        <div class="bar">
-            <span style="width: {{ $players->count() ? min(100, round($paid / $players->count() * 100)) : 0 }}%"></span>
-        </div>
-
-        <p class="muted">
-            {{ $players->count() ? round($paid / $players->count() * 100) : 0 }}% de jugadores con cuota completa
-            · Cuota total por jugador en el período: ${{ number_format($amount, 0, ',', '.') }}
-        </p>
-        <a class="share" href="https://wa.me/?text={{ rawurlencode('Estado de tesorería Zaraúz FC: ' . url()->full()) }}" target="_blank" rel="noopener">
-            Compartir este período por WhatsApp
-        </a>
     </section>
 
     <section class="panel account-panel">
@@ -148,6 +121,33 @@
             · Ingresos especiales: $ {{ number_format($specialIncome, 0, ',', '.') }}.
             El saldo corresponde a ingresos menos gastos del período consultado.
         </p>
+    </section>
+
+    <section class="panel">
+        <form method="get" class="period-filter">
+            <div class="period-field">
+                <label for="start_period">Desde el mes</label>
+                <input id="start_period" name="start_period" type="month" value="{{ $startPeriod }}" max="{{ $endPeriod }}" required>
+            </div>
+            <div class="period-field">
+                <label for="end_period">Hasta el mes</label>
+                <input id="end_period" name="end_period" type="month" value="{{ $endPeriod }}" min="{{ $startPeriod }}" required>
+            </div>
+            <button type="submit">Consultar período</button>
+        </form>
+        <p class="period-help">Selecciona el mismo mes en ambos campos para consultar un mes, o un rango para consultar varios meses consecutivos.</p>
+
+        <div class="bar">
+            <span style="width: {{ $players->count() ? min(100, round($paid / $players->count() * 100)) : 0 }}%"></span>
+        </div>
+
+        <p class="muted">
+            {{ $players->count() ? round($paid / $players->count() * 100) : 0 }}% de jugadores con cuota completa
+            · Cuota total por jugador en el período: ${{ number_format($amount, 0, ',', '.') }}
+        </p>
+        <a class="share" href="https://wa.me/?text={{ rawurlencode('Estado de tesorería Zaraúz FC: ' . url()->full()) }}" target="_blank" rel="noopener">
+            Compartir este período por WhatsApp
+        </a>
     </section>
 
     <section class="panel roster-panel">
