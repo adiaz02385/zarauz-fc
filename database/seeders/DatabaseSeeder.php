@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
                     'name' => env('ADMIN_NAME', 'Tesorero Zaraúz FC'),
                     'password' => Hash::make($password),
                     'email_verified_at' => now(),
+                    'is_admin' => true,
                 ],
             );
         }
