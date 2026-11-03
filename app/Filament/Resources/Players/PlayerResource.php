@@ -69,6 +69,11 @@ class PlayerResource extends Resource
                     ->badge()
                     ->formatStateUsing(fn ($state): string => $state ? 'Activo' : 'Inactivo')
                     ->color(fn ($state): string => $state ? 'success' : 'gray'),
+                TextColumn::make('public_token')
+                    ->label('Enlace individual')
+                    ->formatStateUsing(fn (string $state): string => url('/jugador/' . $state))
+                    ->copyable()
+                    ->limit(36),
             ])
             ->recordActions([
                 \Filament\Actions\EditAction::make(),
