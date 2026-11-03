@@ -15,7 +15,7 @@ Aplicación para controlar jugadores, cuotas mensuales y pagos del club.
 - Nómina inicial: 16 jugadores.
 - Octubre 2026: 15 pagos informados; pendiente Luis Salgado.
 - Noviembre 2026: 9 pagos informados según los checks de la nómina recibida el 03-11-2026.
-- La fecha exacta de los pagos históricos no venía indicada, por lo que se guardan sin fecha en vez de inventarla.
+- Las fechas exactas de los pagos históricos no venían indicadas; quedan vacías en lugar de inventarse.
 
 El seeder es idempotente: al ejecutarse de nuevo no duplica jugadores ni registros de carga inicial.
 
@@ -29,11 +29,13 @@ El seeder es idempotente: al ejecutarse de nuevo no duplica jugadores ni registr
 El servicio web usa el Dockerfile del repositorio y conecta a PostgreSQL mediante `DB_URL`. Railway ejecuta migraciones y el seeder antes de publicar una nueva versión.
 
 ## Primer administrador
-No hay credenciales predeterminadas. Para generar el usuario inicial desde variables de entorno privadas, configura `ADMIN_EMAIL`, `ADMIN_PASSWORD` y opcionalmente `ADMIN_NAME` en Railway. El seeder crea o actualiza ese usuario de forma idempotente. También se puede crear desde consola con `php artisan make:filament-user`.
+No hay credenciales predeterminadas ni registro público de usuarios. Para crear el tesorero inicial configura las variables privadas `ADMIN_EMAIL`, `ADMIN_PASSWORD` y opcionalmente `ADMIN_NAME` en el servicio Web de Railway. El seeder crea/actualiza esa cuenta y la marca como administradora. Usa una contraseña robusta y no la guardes en GitHub.
+
+Las demás cuentas quedan sin permiso para entrar al panel Filament. Si creas una cuenta manualmente con `php artisan make:filament-user`, debes asignarle `is_admin = true` desde Tinker o la consola de base de datos antes de que pueda ingresar.
 
 ## Seguridad
-- No hay registro público de usuarios.
-- La creación y edición de pagos está restringida al panel autenticado de Filament.
-- El resumen público no expone nombres ni el detalle de las deudas.
-- Compartir enlaces individuales solo con el jugador correspondiente.
+- Solo usuarios con `is_admin = true` pueden abrir el panel administrativo.
+- La creación y edición de pagos se hace dentro del panel autenticado.
+- El resumen público no expone nombres ni detalle de deudas.
+- Los enlaces individuales deben compartirse únicamente con el jugador correspondiente.
 - Nunca subir el archivo `.env` ni credenciales al repositorio.
