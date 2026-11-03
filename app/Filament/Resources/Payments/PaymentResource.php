@@ -1,21 +1,22 @@
 <?php
 
-namespace App\\Filament\\Resources\\Payments;
+namespace App\Filament\Resources\Payments;
 
-use App\\Filament\\Resources\\Payments\\Pages\\CreatePayment;
-use App\\Filament\\Resources\\Payments\\Pages\\EditPayment;
-use App\\Filament\\Resources\\Payments\\Pages\\ListPayments;
-use App\\Models\\Payment;
+use App\Filament\Resources\Payments\Pages\CreatePayment;
+use App\Filament\Resources\Payments\Pages\EditPayment;
+use App\Filament\Resources\Payments\Pages\ListPayments;
+use App\Models\Payment;
 use BackedEnum;
-use Filament\\Forms\\Components\\DatePicker;
-use Filament\\Forms\\Components\\FileUpload;
-use Filament\\Forms\\Components\\Select;
-use Filament\\Forms\\Components\\Textarea;
-use Filament\\Forms\\Components\\TextInput;
-use Filament\\Resources\\Resource;
-use Filament\\Schemas\\Schema;
-use Filament\\Tables\\Columns\\TextColumn;
-use Filament\\Tables\\Table;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 use UnitEnum;
 
 class PaymentResource extends Resource
@@ -45,7 +46,7 @@ class PaymentResource extends Resource
                 ->label('Mes de la cuota')
                 ->default(now()->format('Y-m'))
                 ->maxLength(7)
-                ->regex('/^\\d{4}-(0[1-9]|1[0-2])$/')
+                ->regex('/^\d{4}-(0[1-9]|1[0-2])$/')
                 ->helperText('Formato: AAAA-MM, por ejemplo 2026-11.')
                 ->required(),
             TextInput::make('amount')
@@ -119,7 +120,7 @@ class PaymentResource extends Resource
                     ->label('Registrado por'),
             ])
             ->recordActions([
-                \\Filament\\Actions\\EditAction::make(),
+                EditAction::make(),
             ])
             ->defaultSort('paid_at', 'desc');
     }

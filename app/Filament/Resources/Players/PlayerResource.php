@@ -1,18 +1,19 @@
 <?php
 
-namespace App\\Filament\\Resources\\Players;
+namespace App\Filament\Resources\Players;
 
-use App\\Filament\\Resources\\Players\\Pages\\CreatePlayer;
-use App\\Filament\\Resources\\Players\\Pages\\EditPlayer;
-use App\\Filament\\Resources\\Players\\Pages\\ListPlayers;
-use App\\Models\\Player;
+use App\Filament\Resources\Players\Pages\CreatePlayer;
+use App\Filament\Resources\Players\Pages\EditPlayer;
+use App\Filament\Resources\Players\Pages\ListPlayers;
+use App\Models\Player;
 use BackedEnum;
-use Filament\\Forms\\Components\\TextInput;
-use Filament\\Forms\\Components\\Toggle;
-use Filament\\Resources\\Resource;
-use Filament\\Schemas\\Schema;
-use Filament\\Tables\\Columns\\TextColumn;
-use Filament\\Tables\\Table;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 use UnitEnum;
 
 class PlayerResource extends Resource
@@ -78,13 +79,13 @@ class PlayerResource extends Resource
                     ->formatStateUsing(fn ($state): string => $state ? 'Activo' : 'Inactivo')
                     ->color(fn ($state): string => $state ? 'success' : 'gray'),
                 TextColumn::make('public_token')
-                    ->label('Enlace individual')
+                    ->label('Enlace de consulta')
                     ->formatStateUsing(fn (string $state): string => url('/jugador/' . $state))
                     ->copyable()
                     ->limit(36),
             ])
             ->recordActions([
-                \\Filament\\Actions\\EditAction::make(),
+                EditAction::make(),
             ])
             ->defaultSort('name');
     }
