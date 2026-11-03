@@ -9,10 +9,11 @@
         * { box-sizing: border-box; }
         body { margin: 0; }
         .wrap { max-width: 980px; margin: auto; padding: 24px; }
-        .hero { background: #101b32; color: white; padding: 26px; border-radius: 20px; }
+        .hero { background: #063f32; color: white; padding: 22px 26px; border-radius: 20px; display: flex; align-items: center; gap: 18px; }
+        .hero img { width: 94px; height: 94px; object-fit: contain; background: #fff; border-radius: 14px; }
         .hero h1 { margin: 0 0 5px; font-size: 28px; }
         .muted { color: #64748b; }
-        .hero .muted { color: #cbd5e1; }
+        .hero .muted { color: #d8e8df; }
         .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 18px 0; }
         .card, .panel { background: white; border: 1px solid #e5eaf0; border-radius: 16px; padding: 18px; }
         .value { font-size: 26px; font-weight: 800; margin-top: 8px; }
@@ -22,14 +23,17 @@
         .bar span { display: block; height: 100%; background: #16a34a; }
         input, button, .share { padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 9px; background: white; color: #172033; text-decoration: none; display: inline-block; }
         .share { margin-top: 16px; border-color: #15803d; color: #166534; font-weight: 650; }
-        @media (max-width: 650px) { .wrap { padding: 14px; } .cards { grid-template-columns: 1fr; } .value { font-size: 23px; } }
+        @media (max-width: 650px) { .wrap { padding: 14px; } .cards { grid-template-columns: 1fr; } .value { font-size: 23px; } .hero { padding: 16px; } .hero img { width: 76px; height: 76px; } }
     </style>
 </head>
 <body>
 <main class="wrap">
     <header class="hero">
-        <h1>ZARAÚZ FC</h1>
-        <div class="muted">Tesorería · Estado general de mensualidades</div>
+        <img src="{{ asset('images/zarauz-fc.webp') }}" alt="Escudo Zaraúz FC">
+        <div>
+            <h1>ZARAÚZ FC</h1>
+            <div class="muted">Tesorería · Estado general de mensualidades</div>
+        </div>
     </header>
 
     <section class="cards">
