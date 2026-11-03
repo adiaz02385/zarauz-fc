@@ -78,20 +78,7 @@
         </div>
     </header>
 
-    <section class="cards">
-        <div class="card">
-            <div class="muted">Recaudado por mensualidades en el período</div>
-            <div class="value green">\${{ number_format($received, 0, ',', '.') }}</div>
-        </div>
-        <div class="card">
-            <div class="muted">Jugadores al día</div>
-            <div class="value">{{ $paid }} / {{ $players->count() }}</div>
-        </div>
-        <div class="card">
-            <div class="muted">Total mensualidades pendientes</div>
-            <div class="value orange">\${{ number_format($pending, 0, ',', '.') }}</div>
-        </div>
-    </section>
+
 
     <section class="panel account-panel">
         <div class="account-heading">
@@ -148,6 +135,21 @@
         <a class="share" href="https://wa.me/?text={{ rawurlencode('Estado de tesorería Zaraúz FC: ' . url()->full()) }}" target="_blank" rel="noopener">
             Compartir este período por WhatsApp
         </a>
+    </section>
+
+    <section class="cards">
+        <div class="card">
+            <div class="muted">Recaudado por mensualidades en el período</div>
+            <div class="value green">\${{ number_format($received, 0, ',', '.') }}</div>
+        </div>
+        <div class="card">
+            <div class="muted">Jugadores al día</div>
+            <div class="value">{{ $paid }} / {{ $players->count() }}</div>
+        </div>
+        <div class="card">
+            <div class="muted">Total mensualidades pendientes</div>
+            <div class="value orange">\${{ number_format($pending, 0, ',', '.') }}</div>
+        </div>
     </section>
 
     <section class="panel roster-panel">
