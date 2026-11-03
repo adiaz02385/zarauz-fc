@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\Expense;
 use App\Models\Payment;
-use App\Models\SpecialEventPayment;
+use App\Models\SpecialIncome;
 use Illuminate\Support\Carbon;
 
 class TreasuryStatement
@@ -13,7 +13,7 @@ class TreasuryStatement
      * Calculate the cash movement for a selected calendar month.
      *
      * Monthly dues are attributed to the month they cover (payments.period).
-     * Event contributions and expenses are attributed to their transaction dates.
+     * Special incomes and expenses are attributed to their transaction dates.
      */
     public function forPeriod(string $period): array
     {
@@ -25,19 +25,19 @@ class TreasuryStatement
             ->where('period', $period)
             ->sum('amount');
 
-        $eventIncome = (int) SpecialEventPayment::query()
-            ->whereBetween('paid_at', [$start, $end])
+        $specialIncome = (int) SpecialIncome::query()
+            ->whereBetween('income_date', [$start, $end])
             ->sum('amount');
 
         $expensesTotal = (int) Expense::query()
             ->whereBetween('expense_date', [$start, $end])
             ->sum('amount');
 
-        $totalIncome = $monthlyIncome + $eventIncome;
+        $totalIncome = $monthlyIncome + $specialIncome;
 
         return [
             'monthlyIncome' => $monthlyIncome,
-            'eventIncome' => $eventIncome,
+            'specialIncome' => $specialIncome,
             'totalIncome' => $totalIncome,
             'expensesTotal' => $expensesTotal,
             'netBalance' => $totalIncome - $expensesTotal,

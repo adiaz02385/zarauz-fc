@@ -132,7 +132,7 @@
 
         <p class="account-breakdown">
             Ingresos por mensualidades: $ {{ number_format($monthlyIncome, 0, ',', '.') }}
-            · Cuotas de eventos: $ {{ number_format($eventIncome, 0, ',', '.') }}.
+            · Ingresos especiales: $ {{ number_format($specialIncome, 0, ',', '.') }}.
             El saldo corresponde a ingresos menos gastos del mes consultado.
         </p>
     </section>
