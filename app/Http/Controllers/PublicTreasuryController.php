@@ -21,15 +21,49 @@ class PublicTreasuryController
 {
     public function index(Request $request)
     {
-        $period = $request->query('period', now()->format('Y-m'));
-        abort_unless(preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $period), 404);
+        // Keep the previous ?period=YYYY-MM query parameter working as a
+        // one-month shortcut while the public form uses start/end periods.
+        $startPeriod = $request->query(
+            'start_period',
+            $request->query('period', now()->format('Y-m'))
+        );
+        $endPeriod = $request->query('end_period', $startPeriod);
 
-        $fee = MonthlyFee::where('period', $period)->first();
-        $amount = $fee?->amount ?? (int) config('zarauz.monthly_fee', 10000);
+        $validPeriod = fn ($value): bool => is_string($value)
+            && preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $value) === 1;
+
+        abort_unless(
+            $validPeriod($startPeriod)
+            && $validPeriod($endPeriod)
+            && $startPeriod <= $endPeriod,
+            404
+        );
+
+        $startMonth = Carbon::createFromFormat('!Y-m', $startPeriod)->startOfMonth();
+        $endMonth = Carbon::createFromFormat('!Y-m', $endPeriod)->startOfMonth();
+        $startDate = $startMonth->toDateString();
+        $endDate = $endMonth->copy()->endOfMonth()->toDateString();
+
+        // Sum the monthly fee configured for each month in the selected range.
+        // Months without an explicit fee use the club's configured default.
+        $defaultMonthlyFee = (int) config('zarauz.monthly_fee', 10000);
+        $monthlyFees = MonthlyFee::query()
+            ->whereBetween('period', [$startPeriod, $endPeriod])
+            ->pluck('amount', 'period');
+
+        $amount = 0;
+        $monthCount = 0;
+
+        for ($month = $startMonth->copy(); $month->lessThanOrEqualTo($endMonth); $month->addMonth()) {
+            $monthPeriod = $month->format('Y-m');
+            $amount += (int) ($monthlyFees->get($monthPeriod) ?? $defaultMonthlyFee);
+            $monthCount++;
+        }
 
         $players = Player::query()
             ->where('active', true)
-            ->with(['payments' => fn ($query) => $query->where('period', $period)])
+            ->with(['payments' => fn ($query) => $query
+                ->whereBetween('period', [$startPeriod, $endPeriod])])
             ->orderBy('name')
             ->get();
 
@@ -45,11 +79,21 @@ class PublicTreasuryController
             fn (Player $player) => max(0, $amount - $player->payments->sum('amount'))
         );
 
-        $statement = app(TreasuryStatement::class)->forPeriod($period);
+        $statement = app(TreasuryStatement::class)
+            ->forPeriodRange($startPeriod, $endPeriod);
+
+        $periodLabel = ucfirst($startMonth->copy()->locale('es')->translatedFormat('F Y'));
+
+        if ($startPeriod !== $endPeriod) {
+            $periodLabel .= ' - ' . $endMonth->copy()->locale('es')->translatedFormat('F Y');
+        }
 
         return view('public.treasury', array_merge(
             compact(
-                'period',
+                'startPeriod',
+                'endPeriod',
+                'periodLabel',
+                'monthCount',
                 'amount',
                 'players',
                 'paid',
