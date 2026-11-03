@@ -1,44 +1,63 @@
 # Zaraúz FC — Sistema de tesorería
 
-Starter funcional para construir el sistema de control de mensualidades de Zaraúz FC.
+Aplicación web de control de mensualidades para Zaraúz FC.
 
-## Alcance inicial
-- 20 jugadores como base de planificación.
+## Funcionalidades incluidas
+- Mantenedor de jugadores en Filament 5 (alta, edición y activación/desactivación).
+- Registro y edición administrativa de pagos, incluyendo pagos parciales.
+- Asociación de pagos a jugador y período mensual.
+- Resumen público agregado por mes, sin publicar nombres ni saldos individuales.
+- Consulta individual del historial mediante enlace UUID.
+- PostgreSQL como base de datos.
+
+## Reglas iniciales
 - Cuota mensual de referencia: $10.000 CLP.
-- Registro administrativo de pagos.
-- Consulta de mensualidades para jugadores.
-- Historial individual mediante enlace con token.
-- Base de datos PostgreSQL.
+- Base de planificación: 20 jugadores.
+- Solo usuarios autenticados pueden ingresar al panel /admin y registrar pagos.
+- Los enlaces individuales se deben compartir únicamente con el jugador correspondiente.
 
-## Estado del repositorio
-Este repositorio contiene una **base inicial (starter/overlay)**, no una instalación Laravel completa ni una aplicación lista para producción. Incluye modelos, migraciones, controlador y vistas públicas. Aún falta completar el esqueleto Laravel, los recursos/paneles Filament, autenticación y autorización, pruebas y configuración final de despliegue.
-
-## Stack objetivo
+## Stack
 - PHP 8.2+
 - Laravel 12
 - Filament 5
 - PostgreSQL
-- Railway (hosting)
+- Railway
 
-## Incorporar el starter a Laravel
-1. Crear la aplicación: `composer create-project laravel/laravel zarauz-fc '^12.0'`
-2. Instalar Filament: `composer require filament/filament:^5.0`
-3. Copiar el contenido de este repositorio sobre el proyecto Laravel, respetando rutas.
-4. Crear `config/zarauz.php` usando como referencia `config-zarauz.php`.
-5. Configurar PostgreSQL en `.env`.
-6. Ejecutar `php artisan migrate`.
-7. Crear el usuario administrador y completar el panel Filament.
+## Despliegue en Railway
+El Dockerfile genera una instalación limpia de Laravel 12 durante la construcción, instala las dependencias indicadas en composer.json e integra los archivos de este repositorio. Railway ejecuta las migraciones y el seeder en el paso pre-deploy.
 
-## Variables de entorno
-Revisar `.env.example`. No subir secretos ni el archivo `.env` real.
+Servicios creados en Railway:
+- Aplicación web: se conecta desde el repositorio GitHub.
+- Postgres: base de datos persistente.
 
-## Railway
-El proyecto Railway y un servicio PostgreSQL fueron creados previamente. El servicio web aún requiere una aplicación Laravel completa y configuración de build/start antes de desplegarse. Revisar `railway.toml` y `Dockerfile` antes de usar en producción.
+Variables que debe tener el servicio web:
+- APP_KEY: clave generada con `php artisan key:generate --show`.
+- APP_ENV=production
+- APP_DEBUG=false
+- APP_URL: dominio público asignado por Railway.
+- DB_CONNECTION=pgsql
+- DB_URL: referencia privada `${{Postgres.DATABASE_URL}}`.
+- SESSION_DRIVER=database
+- CACHE_STORE=database
+- QUEUE_CONNECTION=database
+- ZARAUZ_MONTHLY_FEE=10000
 
-## Pendientes de seguridad antes de producción
-- Autenticación y autorización del panel administrativo.
-- Restringir el registro de pagos al administrador.
-- Definir qué datos quedan visibles en el resumen público.
-- Proteger los enlaces individuales y evitar compartir información de otros jugadores.
-- Validación, pruebas automatizadas, backups y HTTPS.
-- Configurar correctamente migraciones y healthcheck para el servicio web.
+### Primer usuario administrador
+No se crea ninguna cuenta con credenciales predeterminadas. Para crear la cuenta durante el despliegue, configura ADMIN_EMAIL y ADMIN_PASSWORD como variables privadas del servicio web; ADMIN_NAME es opcional. El seeder crea/actualiza esa cuenta en cada despliegue. Usa una contraseña única y robusta.
+
+Alternativamente, crea el usuario desde una consola del servicio con `php artisan make:filament-user`.
+
+## Desarrollo local
+1. Crear un proyecto Laravel 12: `composer create-project laravel/laravel zarauz-fc '^12.0'`.
+2. Instalar Filament 5: `composer require filament/filament:^5.0`.
+3. Copiar los archivos de este repositorio sobre el proyecto Laravel, respetando rutas.
+4. Ejecutar `php artisan migrate --seed`.
+5. Crear un administrador con `php artisan make:filament-user` o definir ADMIN_EMAIL y ADMIN_PASSWORD antes de ejecutar el seeder.
+6. Iniciar con `php artisan serve`.
+
+## Privacidad y seguridad
+- El resumen público solo muestra cifras agregadas.
+- La ruta individual usa un token UUID secreto. No compartir ese enlace en grupos.
+- No existe registro público de usuarios.
+- No subir archivos .env ni credenciales al repositorio.
+- Activar backups de PostgreSQL y mantener APP_DEBUG desactivado en producción.
