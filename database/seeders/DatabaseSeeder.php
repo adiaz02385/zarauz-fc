@@ -18,12 +18,10 @@ class DatabaseSeeder extends Seeder
         $adminName = trim((string) config('zarauz.admin.name', 'Tesorero Zaraúz FC'));
 
         if ($email !== '' && $password !== '') {
-            // Update the account for this email, or reuse the current administrator.
             $admin = User::query()->where('email', $email)->first()
                 ?? User::query()->where('is_admin', true)->orderBy('id')->first()
                 ?? new User();
 
-            // Keep a single active administrator account.
             User::query()
                 ->where('is_admin', true)
                 ->when($admin->exists, fn ($query) => $query->where('id', '!=', $admin->id))
@@ -35,6 +33,7 @@ class DatabaseSeeder extends Seeder
                 'password' => $password,
                 'email_verified_at' => now(),
                 'is_admin' => true,
+                'is_active' => true,
             ])->save();
 
             logger()->info('Zarauz FC administrator account synchronized.', [
