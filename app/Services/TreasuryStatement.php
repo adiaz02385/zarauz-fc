@@ -10,19 +10,31 @@ use Illuminate\Support\Carbon;
 class TreasuryStatement
 {
     /**
-     * Calculate the cash movement for a selected calendar month.
-     *
-     * Monthly dues are attributed to the month they cover (payments.period).
-     * Special incomes and expenses are attributed to their transaction dates.
+     * Calculate the cash movement for one calendar month.
      */
     public function forPeriod(string $period): array
     {
-        $month = Carbon::createFromFormat('!Y-m', $period);
-        $start = $month->copy()->startOfMonth()->toDateString();
-        $end = $month->copy()->endOfMonth()->toDateString();
+        return $this->forPeriodRange($period, $period);
+    }
+
+    /**
+     * Calculate the cash movement for an inclusive range of calendar months.
+     *
+     * Monthly dues are attributed to the month they cover (payments.period).
+     * Special incomes and expenses are attributed to their transaction dates.
+     * Special event contributions are intentionally excluded from this statement.
+     */
+    public function forPeriodRange(string $startPeriod, string $endPeriod): array
+    {
+        $start = Carbon::createFromFormat('!Y-m', $startPeriod)
+            ->startOfMonth()
+            ->toDateString();
+        $end = Carbon::createFromFormat('!Y-m', $endPeriod)
+            ->endOfMonth()
+            ->toDateString();
 
         $monthlyIncome = (int) Payment::query()
-            ->where('period', $period)
+            ->whereBetween('period', [$startPeriod, $endPeriod])
             ->sum('amount');
 
         $specialIncome = (int) SpecialIncome::query()
