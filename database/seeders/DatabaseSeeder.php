@@ -103,12 +103,12 @@ class DatabaseSeeder extends Seeder
                     [
                         'player_id' => $players[$name]->id,
                         'period' => $period,
-                        'reference' => 'initial-roster-' . $period,
                     ],
                     [
                         'amount' => $monthlyFee,
                         'paid_at' => null,
                         'method' => 'otro',
+                        'reference' => 'initial-roster-' . $period,
                         'notes' => 'Carga inicial informada por tesorería el 03-11-2026. Fecha exacta de pago no informada.',
                     ],
                 );

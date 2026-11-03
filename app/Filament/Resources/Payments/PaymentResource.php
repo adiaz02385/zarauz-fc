@@ -6,7 +6,9 @@ use App\Filament\Resources\Payments\Pages\CreatePayment;
 use App\Filament\Resources\Payments\Pages\EditPayment;
 use App\Filament\Resources\Payments\Pages\ListPayments;
 use App\Models\Payment;
+use App\Models\Player;
 use BackedEnum;
+use Carbon\Carbon;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
@@ -14,9 +16,12 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Validation\Rules\Unique;
 use UnitEnum;
 
 class PaymentResource extends Resource
@@ -33,6 +38,15 @@ class PaymentResource extends Resource
 
     protected static ?string $pluralModelLabel = 'pagos';
 
+    private static function periodLabel(string $period): string
+    {
+        return ucfirst(
+            Carbon::parse($period . '-01')
+                ->locale('es')
+                ->translatedFormat('F Y')
+        );
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
@@ -41,12 +55,20 @@ class PaymentResource extends Resource
                 ->relationship('player', 'name')
                 ->searchable()
                 ->preload()
+                ->live()
                 ->required(),
             TextInput::make('period')
                 ->label('Mes de la cuota')
                 ->default(now()->format('Y-m'))
                 ->maxLength(7)
                 ->regex('/^\d{4}-(0[1-9]|1[0-2])$/')
+                ->unique(
+                    modifyRuleUsing: fn (Unique $rule, Get $get): Unique => $rule->where('player_id', $get('player_id')),
+                    ignoreRecord: true,
+                )
+                ->validationMessages([
+                    'unique' => 'Este jugador ya tiene un pago registrado para el mes seleccionado.',
+                ])
                 ->helperText('Formato: AAAA-MM, por ejemplo 2026-11.')
                 ->required(),
             TextInput::make('amount')
@@ -99,6 +121,7 @@ class PaymentResource extends Resource
                     ->sortable(),
                 TextColumn::make('period')
                     ->label('Período')
+                    ->formatStateUsing(fn (string $state): string => self::periodLabel($state))
                     ->sortable(),
                 TextColumn::make('amount')
                     ->label('Monto')
@@ -118,6 +141,26 @@ class PaymentResource extends Resource
                     ->color(fn ($state): string => filled($state) ? 'success' : 'gray'),
                 TextColumn::make('registrar.name')
                     ->label('Registrado por'),
+            ])
+            ->filters([
+                SelectFilter::make('period')
+                    ->label('Período')
+                    ->options(fn (): array => Payment::query()
+                        ->select('period')
+                        ->distinct()
+                        ->orderByDesc('period')
+                        ->pluck('period')
+                        ->mapWithKeys(fn (string $period): array => [
+                            $period => self::periodLabel($period),
+                        ])
+                        ->all()),
+                SelectFilter::make('player_id')
+                    ->label('Jugador')
+                    ->options(fn (): array => Player::query()
+                        ->orderBy('name')
+                        ->pluck('name', 'id')
+                        ->all())
+                    ->searchable(),
             ])
             ->recordActions([
                 EditAction::make(),
