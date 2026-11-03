@@ -28,6 +28,8 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->brandName('Zaraúz FC')
+            ->brandLogo(asset('images/zarauz-fc.webp'))
+            ->brandLogoHeight('3.5rem')
             ->discoverResources(
                 in: app_path('Filament/Resources'),
                 for: 'App\\Filament\\Resources'
