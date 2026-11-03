@@ -20,11 +20,8 @@
         .orange { color: #c2410c; }
         .bar { height: 10px; background: #e8edf2; border-radius: 20px; overflow: hidden; margin-top: 14px; }
         .bar span { display: block; height: 100%; background: #16a34a; }
-        .row { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid #edf0f4; }
-        .row:last-child { border: 0; }
-        .status { font-size: 12px; font-weight: 700; border-radius: 20px; padding: 5px 9px; background: #dcfce7; color: #166534; }
-        .pending { background: #ffedd5; color: #9a3412; }
-        input, button { padding: 9px; border: 1px solid #cbd5e1; border-radius: 9px; background: white; }
+        input, button, .share { padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 9px; background: white; color: #172033; text-decoration: none; display: inline-block; }
+        .share { margin-top: 16px; border-color: #15803d; color: #166534; font-weight: 650; }
         @media (max-width: 650px) { .wrap { padding: 14px; } .cards { grid-template-columns: 1fr; } .value { font-size: 23px; } }
     </style>
 </head>
@@ -32,7 +29,7 @@
 <main class="wrap">
     <header class="hero">
         <h1>ZARAÚZ FC</h1>
-        <div class="muted">Tesorería · Estado de mensualidades</div>
+        <div class="muted">Tesorería · Estado general de mensualidades</div>
     </header>
 
     <section class="cards">
@@ -45,8 +42,8 @@
             <div class="value">{{ $paid }} / {{ $players->count() }}</div>
         </div>
         <div class="card">
-            <div class="muted">Cuotas por completar</div>
-            <div class="value orange">${{ number_format(max(0, ($players->count() * $amount) - $received), 0, ',', '.') }}</div>
+            <div class="muted">Saldo pendiente total</div>
+            <div class="value orange">${{ number_format($pending, 0, ',', '.') }}</div>
         </div>
     </section>
 
@@ -63,26 +60,14 @@
 
         <p class="muted">
             {{ $players->count() ? round($paid / $players->count() * 100) : 0 }}% de jugadores con cuota completa
-            · Cuota: ${{ number_format($amount, 0, ',', '.') }}
+            · Cuota mensual: ${{ number_format($amount, 0, ',', '.') }}
         </p>
+        <p class="muted">Este resumen muestra únicamente cifras agregadas. Cada jugador puede consultar su historial desde el enlace individual entregado por el tesorero.</p>
 
-        <h3>Estado general</h3>
-        @foreach ($players as $player)
-            @php
-                $sum = $player->payments->sum('amount');
-                $isPaid = $sum >= $amount;
-            @endphp
-            <div class="row">
-                <span>{{ $player->nickname ?: $player->name }}</span>
-                <span>
-                    <strong>${{ number_format($sum, 0, ',', '.') }}</strong>
-                    <span class="status {{ $isPaid ? '' : 'pending' }}">{{ $isPaid ? 'Al día' : 'Pendiente' }}</span>
-                </span>
-            </div>
-        @endforeach
+        <a class="share" href="https://wa.me/?text={{ rawurlencode('Estado de tesorería Zaraúz FC: ' . url()->full()) }}" target="_blank" rel="noopener">
+            Compartir resumen por WhatsApp
+        </a>
     </section>
-
-    <p class="muted">Información de tesorería de Zaraúz FC. Para consultas personales, utiliza el enlace privado entregado por el tesorero.</p>
 </main>
 </body>
 </html>
