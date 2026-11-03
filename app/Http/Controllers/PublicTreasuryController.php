@@ -19,6 +19,7 @@ class PublicTreasuryController
         $players = Player::query()
             ->where('active', true)
             ->with(['payments' => fn ($query) => $query->where('period', $period)])
+            ->orderBy('name')
             ->get();
 
         $paid = $players->filter(

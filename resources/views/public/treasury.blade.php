@@ -8,7 +8,7 @@
         :root { font-family: Inter, system-ui, sans-serif; color: #172033; background: #f3f5f8; }
         * { box-sizing: border-box; }
         body { margin: 0; }
-        .wrap { max-width: 980px; margin: auto; padding: 24px; }
+        .wrap { max-width: 1040px; margin: auto; padding: 24px; }
         .hero { background: #063f32; color: white; padding: 22px 26px; border-radius: 20px; display: flex; align-items: center; gap: 18px; }
         .hero img { width: 94px; height: 94px; object-fit: contain; background: #fff; border-radius: 14px; }
         .hero h1 { margin: 0 0 5px; font-size: 28px; }
@@ -22,8 +22,30 @@
         .bar { height: 10px; background: #e8edf2; border-radius: 20px; overflow: hidden; margin-top: 14px; }
         .bar span { display: block; height: 100%; background: #16a34a; }
         input, button, .share { padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 9px; background: white; color: #172033; text-decoration: none; display: inline-block; }
+        button { cursor: pointer; }
         .share { margin-top: 16px; border-color: #15803d; color: #166534; font-weight: 650; }
-        @media (max-width: 650px) { .wrap { padding: 14px; } .cards { grid-template-columns: 1fr; } .value { font-size: 23px; } .hero { padding: 16px; } .hero img { width: 76px; height: 76px; } }
+        .roster-panel { margin-top: 18px; }
+        .roster-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+        .roster-header h2 { margin: 0; color: #123f32; font-size: 20px; }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 560px; }
+        th, td { text-align: left; padding: 12px 10px; border-bottom: 1px solid #edf0f4; }
+        th { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: .04em; }
+        td { font-size: 14px; }
+        .money { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .status { display: inline-flex; align-items: center; border-radius: 999px; padding: 5px 10px; font-size: 12px; font-weight: 750; white-space: nowrap; }
+        .status-paid { color: #166534; background: #dcfce7; }
+        .status-partial { color: #92400e; background: #fef3c7; }
+        .status-pending { color: #9f1239; background: #ffe4e6; }
+        .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+        .legend .status { font-weight: 650; }
+        @media (max-width: 650px) {
+            .wrap { padding: 14px; }
+            .cards { grid-template-columns: 1fr; }
+            .value { font-size: 23px; }
+            .hero { padding: 16px; }
+            .hero img { width: 76px; height: 76px; }
+        }
     </style>
 </head>
 <body>
@@ -39,7 +61,7 @@
     <section class="cards">
         <div class="card">
             <div class="muted">Recaudado en el período</div>
-            <div class="value green">${{ number_format($received, 0, ',', '.') }}</div>
+            <div class="value green">\${{ number_format($received, 0, ',', '.') }}</div>
         </div>
         <div class="card">
             <div class="muted">Jugadores al día</div>
@@ -47,7 +69,7 @@
         </div>
         <div class="card">
             <div class="muted">Saldo pendiente total</div>
-            <div class="value orange">${{ number_format($pending, 0, ',', '.') }}</div>
+            <div class="value orange">\${{ number_format($pending, 0, ',', '.') }}</div>
         </div>
     </section>
 
@@ -64,13 +86,67 @@
 
         <p class="muted">
             {{ $players->count() ? round($paid / $players->count() * 100) : 0 }}% de jugadores con cuota completa
-            · Cuota mensual: ${{ number_format($amount, 0, ',', '.') }}
+            · Cuota mensual: \${{ number_format($amount, 0, ',', '.') }}
         </p>
-        <p class="muted">Este resumen muestra únicamente cifras agregadas. Cada jugador puede consultar su historial desde el enlace individual entregado por el tesorero.</p>
-
         <a class="share" href="https://wa.me/?text={{ rawurlencode('Estado de tesorería Zaraúz FC: ' . url()->full()) }}" target="_blank" rel="noopener">
-            Compartir resumen por WhatsApp
+            Compartir este mes por WhatsApp
         </a>
+    </section>
+
+    <section class="panel roster-panel">
+        <div class="roster-header">
+            <h2>Estado de jugadores — {{ $period }}</h2>
+            <span class="muted">{{ $players->count() }} jugadores activos</span>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Jugador</th>
+                        <th>Estado</th>
+                        <th class="money">Pagado</th>
+                        <th class="money">Saldo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($players as $player)
+                        @php
+                            $playerPaid = (int) $player->payments->sum('amount');
+                            $balance = max(0, $amount - $playerPaid);
+
+                            if ($playerPaid >= $amount) {
+                                $statusLabel = 'Al día';
+                                $statusClass = 'status-paid';
+                            } elseif ($playerPaid > 0) {
+                                $statusLabel = 'Abono parcial';
+                                $statusClass = 'status-partial';
+                            } else {
+                                $statusLabel = 'Pendiente';
+                                $statusClass = 'status-pending';
+                            }
+                        @endphp
+                        <tr>
+                            <td><strong>{{ $player->nickname ?: $player->name }}</strong></td>
+                            <td><span class="status {{ $statusClass }}">{{ $statusLabel }}</span></td>
+                            <td class="money">\${{ number_format($playerPaid, 0, ',', '.') }}</td>
+                            <td class="money">\${{ number_format($balance, 0, ',', '.') }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="muted">No hay jugadores activos registrados.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <div class="legend">
+            <span class="status status-paid">Al día</span>
+            <span class="status status-partial">Abono parcial</span>
+            <span class="status status-pending">Pendiente</span>
+        </div>
+        <p class="muted">El estado corresponde al mes seleccionado y considera la suma de los pagos y abonos registrados. Este listado es visible públicamente.</p>
     </section>
 </main>
 </body>
