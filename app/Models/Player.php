@@ -31,6 +31,11 @@ class Player extends Model
         return $this->hasMany(Payment::class);
     }
 
+    public function paymentSubmissions(): HasMany
+    {
+        return $this->hasMany(PaymentSubmission::class);
+    }
+
     public function paymentsFor(string $period): HasMany
     {
         return $this->payments()->where('period', $period);

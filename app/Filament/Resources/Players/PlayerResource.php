@@ -18,8 +18,6 @@ use UnitEnum;
 
 class PlayerResource extends Resource
 {
-    private const PUBLIC_PLAYER_BASE_URL = 'https://zarauzfc.up.railway.app';
-
     protected static ?string $model = Player::class;
 
     protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-users';
@@ -36,7 +34,7 @@ class PlayerResource extends Resource
 
     private static function publicPlayerUrl(Player $player): string
     {
-        return rtrim(self::PUBLIC_PLAYER_BASE_URL, '/') . '/jugador/' . $player->public_token;
+        return url('/jugador/' . $player->public_token);
     }
 
     public static function form(Schema $schema): Schema
@@ -86,10 +84,10 @@ class PlayerResource extends Resource
                     ->formatStateUsing(fn ($state): string => $state ? 'Activo' : 'Inactivo')
                     ->color(fn ($state): string => $state ? 'success' : 'gray'),
                 TextColumn::make('public_token')
-                    ->label('Enlace de consulta')
+                    ->label('Portal del jugador')
                     ->state(fn (Player $record): string => self::publicPlayerUrl($record))
                     ->copyable()
-                    ->copyMessage('Enlace completo copiado')
+                    ->copyMessage('Enlace personal copiado')
                     ->wrap()
                     ->url(fn (Player $record): string => self::publicPlayerUrl($record))
                     ->openUrlInNewTab(),
