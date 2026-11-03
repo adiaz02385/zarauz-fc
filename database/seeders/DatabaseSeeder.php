@@ -7,29 +7,43 @@ use App\Models\Payment;
 use App\Models\Player;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $email = env('ADMIN_EMAIL');
-        $password = env('ADMIN_PASSWORD');
+        $email = Str::lower(trim((string) config('zarauz.admin.email', '')));
+        $password = (string) config('zarauz.admin.password', '');
+        $adminName = trim((string) config('zarauz.admin.name', 'Tesorero Zaraúz FC'));
 
-        // Optional: no default administrator credentials are ever created.
-        if (filled($email) && filled($password)) {
-            User::updateOrCreate(
-                ['email' => $email],
-                [
-                    'name' => env('ADMIN_NAME', 'Tesorero Zaraúz FC'),
-                    'password' => Hash::make($password),
-                    'email_verified_at' => now(),
-                    'is_admin' => true,
-                ],
-            );
+        if ($email !== '' && $password !== '') {
+            // Update the account for this email, or reuse the current administrator.
+            $admin = User::query()->where('email', $email)->first()
+                ?? User::query()->where('is_admin', true)->orderBy('id')->first()
+                ?? new User();
+
+            // Keep a single active administrator account.
+            User::query()
+                ->where('is_admin', true)
+                ->when($admin->exists, fn ($query) => $query->where('id', '!=', $admin->id))
+                ->update(['is_admin' => false]);
+
+            $admin->forceFill([
+                'name' => $adminName !== '' ? $adminName : 'Tesorero Zaraúz FC',
+                'email' => $email,
+                'password' => $password,
+                'email_verified_at' => now(),
+                'is_admin' => true,
+            ])->save();
+
+            logger()->info('Zarauz FC administrator account synchronized.', [
+                'user_id' => $admin->id,
+            ]);
+        } else {
+            logger()->warning('Zarauz FC administrator was not synchronized: ADMIN_EMAIL or ADMIN_PASSWORD is empty.');
         }
 
-        // Opening roster supplied by the treasurer on 03-11-2026.
         $roster = [
             'Gonzalo Álvarez',
             'Cristián Bueno',
@@ -57,49 +71,43 @@ class DatabaseSeeder extends Seeder
             );
         }
 
+        $monthlyFee = (int) config('zarauz.monthly_fee', 10000);
+
         foreach (['2026-10', '2026-11'] as $period) {
             MonthlyFee::updateOrCreate(
                 ['period' => $period],
-                ['amount' => (int) env('ZARAUZ_MONTHLY_FEE', 10000)],
+                ['amount' => $monthlyFee],
             );
         }
 
-        $octoberPaid = array_values(array_filter(
-            $roster,
-            fn (string $name): bool => $name !== 'Luis Salgado',
-        ));
-
-        // Green checks on the supplied list identify November payments received to date.
-        $novemberPaid = [
-            'Gonzalo Álvarez',
-            'Jonathan Riveros',
-            'Víctor Zamorano',
-            'Rodrigo Sanzana',
-            'Alexander Díaz',
-            'Felipe Zamorano',
-            'Gerardo Pereira',
-            'Daniel Riveros',
-            'Luis Salgado',
-        ];
-
         $openingPayments = [
-            '2026-10' => $octoberPaid,
-            '2026-11' => $novemberPaid,
+            '2026-10' => array_values(array_filter(
+                $roster,
+                fn (string $name): bool => $name !== 'Luis Salgado',
+            )),
+            '2026-11' => [
+                'Gonzalo Álvarez',
+                'Jonathan Riveros',
+                'Víctor Zamorano',
+                'Rodrigo Sanzana',
+                'Alexander Díaz',
+                'Felipe Zamorano',
+                'Gerardo Pereira',
+                'Daniel Riveros',
+                'Luis Salgado',
+            ],
         ];
 
         foreach ($openingPayments as $period => $paidPlayers) {
             foreach ($paidPlayers as $name) {
-                $reference = 'initial-roster-' . $period;
-
                 Payment::firstOrCreate(
                     [
                         'player_id' => $players[$name]->id,
                         'period' => $period,
-                        'reference' => $reference,
+                        'reference' => 'initial-roster-' . $period,
                     ],
                     [
-                        'amount' => (int) env('ZARAUZ_MONTHLY_FEE', 10000),
-                        // The image confirms payment status, not the exact day paid.
+                        'amount' => $monthlyFee,
                         'paid_at' => null,
                         'method' => 'otro',
                         'notes' => 'Carga inicial informada por tesorería el 03-11-2026. Fecha exacta de pago no informada.',
