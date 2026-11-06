@@ -102,7 +102,23 @@ class SpecialEventPaymentResource extends Resource
             TextInput::make('amount')
                 ->label('Cuota registrada')
                 ->numeric()
-                ->prefix('
+                ->prefix('$')
+                ->disabled()
+                ->dehydrated(false)
+                ->afterStateHydrated(function (TextInput $component, Get $get): void {
+                    $eventId = $get('special_event_id');
+
+                    $event = $eventId
+                        ? SpecialEvent::query()->find($eventId)
+                        : SpecialEvent::query()
+                            ->where('status', SpecialEvent::STATUS_ACTIVE)
+                            ->orderByDesc('event_date')
+                            ->orderByDesc('id')
+                            ->first();
+
+                    $component->state($event ? (int) $event->fee_amount : null);
+                })
+                ->helperText('El monto se obtiene automáticamente desde la cuota definida en el evento.'),
             DatePicker::make('paid_at')
                 ->label('Fecha de pago')
                 ->default(now())
