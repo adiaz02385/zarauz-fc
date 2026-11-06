@@ -74,9 +74,21 @@ class SpecialEventPaymentResource extends Resource
                 ->searchable()
                 ->preload()
                 ->live()
+                ->afterStateHydrated(function ($state, Set $set): void {
+                    // The default active event is already selected when the form
+                    // opens, so afterStateUpdated alone does not initialize amount.
+                    $feeAmount = $state
+                        ? SpecialEvent::query()->whereKey($state)->value('fee_amount')
+                        : null;
+
+                    $set('amount', $feeAmount !== null ? (int) $feeAmount : null);
+                })
                 ->afterStateUpdated(function ($state, Set $set): void {
-                    $event = $state ? SpecialEvent::query()->find($state) : null;
-                    $set('amount', $event?->fee_amount);
+                    $feeAmount = $state
+                        ? SpecialEvent::query()->whereKey($state)->value('fee_amount')
+                        : null;
+
+                    $set('amount', $feeAmount !== null ? (int) $feeAmount : null);
                 })
                 ->required(),
             Select::make('player_id')
