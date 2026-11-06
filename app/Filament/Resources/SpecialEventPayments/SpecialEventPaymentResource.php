@@ -219,9 +219,6 @@ class SpecialEventPaymentResource extends Resource
 }
 )
                 ->disabled()
-                // The amount is derived from the selected event and is assigned
-                // again from the database in the create/edit page before saving.
-                // Do not validate or trust a disabled browser-submitted value.
                 ->dehydrated(false)
                 ->afterStateHydrated(function (TextInput $component, Get $get): void {
                     $eventId = $get('special_event_id');
@@ -333,3 +330,4 @@ class SpecialEventPaymentResource extends Resource
         ];
     }
 }
+
