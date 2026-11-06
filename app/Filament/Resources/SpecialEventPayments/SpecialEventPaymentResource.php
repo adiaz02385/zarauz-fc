@@ -53,7 +53,7 @@ class SpecialEventPaymentResource extends Resource
                             // Keep the current event available when editing a payment
                             // that was registered before the event was finalized.
                             if ($record) {
-                                $query->orWhereKey($record->special_event_id);
+                                $query->orWhere('id', $record->special_event_id);
                             }
                         })
                         ->orderByDesc('event_date')
