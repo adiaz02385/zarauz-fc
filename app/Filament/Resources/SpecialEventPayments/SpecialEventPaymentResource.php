@@ -74,15 +74,6 @@ class SpecialEventPaymentResource extends Resource
                 ->searchable()
                 ->preload()
                 ->live()
-                ->afterStateHydrated(function ($state, Set $set): void {
-                    // The default active event is already selected when the form
-                    // opens, so afterStateUpdated alone does not initialize amount.
-                    $feeAmount = $state
-                        ? SpecialEvent::query()->whereKey($state)->value('fee_amount')
-                        : null;
-
-                    $set('amount', $feeAmount !== null ? (int) $feeAmount : null);
-                })
                 ->afterStateUpdated(function ($state, Set $set): void {
                     $feeAmount = $state
                         ? SpecialEvent::query()->whereKey($state)->value('fee_amount')
@@ -111,10 +102,122 @@ class SpecialEventPaymentResource extends Resource
             TextInput::make('amount')
                 ->label('Cuota registrada')
                 ->numeric()
-                ->prefix('$')
+                ->prefix('
+            DatePicker::make('paid_at')
+                ->label('Fecha de pago')
+                ->default(now())
+                ->native(false)
+                ->required(),
+            Select::make('method')
+                ->label('Medio de pago')
+                ->options([
+                    'transferencia' => 'Transferencia',
+                    'efectivo' => 'Efectivo',
+                    'otro' => 'Otro',
+                ]),
+            TextInput::make('reference')
+                ->label('N.º de operación / referencia')
+                ->maxLength(255),
+            FileUpload::make('attachment_path')
+                ->label('Comprobante fotográfico')
+                ->image()
+                ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                ->maxSize(2048)
+                ->disk('local')
+                ->directory('special-event-payment-proofs')
+                ->visibility('private')
+                ->openable()
+                ->downloadable()
+                ->helperText('Formatos permitidos: JPG, PNG o WebP. Máximo 2 MB.'),
+            Textarea::make('notes')
+                ->label('Observaciones')
+                ->rows(3)
+                ->columnSpanFull(),
+        ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('specialEvent.name')
+                    ->label('Evento')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('specialEvent.event_date')
+                    ->label('Fecha del evento')
+                    ->date('d/m/Y')
+                    ->sortable(),
+                TextColumn::make('player.name')
+                    ->label('Jugador')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('amount')
+                    ->label('Monto')
+                    ->formatStateUsing(fn ($state): string => '$' . number_format((int) $state, 0, ',', '.'))
+                    ->sortable(),
+                TextColumn::make('paid_at')
+                    ->label('Fecha de pago')
+                    ->date('d/m/Y')
+                    ->sortable(),
+                TextColumn::make('method')
+                    ->label('Medio')
+                    ->badge()
+                    ->placeholder('—'),
+                TextColumn::make('registrar.name')
+                    ->label('Registrado por')
+                    ->placeholder('—'),
+            ])
+            ->filters([
+                SelectFilter::make('special_event_id')
+                    ->label('Evento')
+                    ->options(fn (): array => SpecialEvent::query()
+                        ->orderByDesc('event_date')
+                        ->pluck('name', 'id')
+                        ->all())
+                    ->searchable(),
+                SelectFilter::make('player_id')
+                    ->label('Jugador')
+                    ->options(fn (): array => Player::query()
+                        ->orderBy('name')
+                        ->pluck('name', 'id')
+                        ->all())
+                    ->searchable(),
+            ])
+            ->recordActions([
+                EditAction::make(),
+            ])
+            ->defaultSort('paid_at', 'desc');
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => ListSpecialEventPayments::route('/'),
+            'create' => CreateSpecialEventPayment::route('/create'),
+            'edit' => EditSpecialEventPayment::route('/{record}/edit'),
+        ];
+    }
+}
+)
                 ->disabled()
-                ->dehydrated()
-                ->required()
+                // The amount is derived from the selected event and is assigned
+                // again from the database in the create/edit page before saving.
+                // Do not validate or trust a disabled browser-submitted value.
+                ->dehydrated(false)
+                ->afterStateHydrated(function (TextInput $component, Get $get): void {
+                    $eventId = $get('special_event_id');
+
+                    $event = $eventId
+                        ? SpecialEvent::query()->find($eventId)
+                        : SpecialEvent::query()
+                            ->where('status', SpecialEvent::STATUS_ACTIVE)
+                            ->orderByDesc('event_date')
+                            ->orderByDesc('id')
+                            ->first();
+
+                    $component->state($event ? (int) $event->fee_amount : null);
+                })
                 ->helperText('El monto se obtiene automáticamente desde la cuota definida en el evento.'),
             DatePicker::make('paid_at')
                 ->label('Fecha de pago')
